@@ -1,0 +1,98 @@
+#include "msp430g2553.h"
+
+// -- FUNCTION SHELLS --//
+
+/*
+ * The patterns here are used with an LED module with 8 different LEDs interfacing with the input pins
+ * designated on the board here in the program. They are random patterns, and you are free to use any
+ * pattern of your desire.
+ */
+
+void pattern1();
+void pattern2();
+void pattern3();
+
+// -- DRIVER FUNCTION -- //
+int main(void) {
+     WDTCTL = WDTPW | WDTHOLD;              //stop watchdog timer
+
+     P1DIR = 0xFF;                          // Sets Port 1 bits to output
+     P1OUT = 0x00;                          // Clears Port 1 output bits
+     P2DIR &= ~(BIT3 | BIT4 | BIT5);        // Sets Port 2.3-5 bits to input
+     P2REN |= BIT3 | BIT4 | BIT5;           // Configures pullup and pulldown resistors for Port 2 bits
+     P2OUT |= BIT3 | BIT4 | BIT5;           //
+
+     P2IES |= BIT3 | BIT4 | BIT5;           // Enables interrupt setup for P2.3-5
+
+     //-- Interrupt Setup --//
+     P2IE |= BIT3 | BIT4 | BIT5;            // Enables interrupts for P2.3-5
+     __enable_interrupt();                  // Function from library that enables use of interrupts
+     P2IFG &= ~(BIT3 | BIT4 | BIT5);        // Clears interrupt flags for Port 2.3-5 bits
+
+     while(1);                              // Continuous loop
+
+
+}
+
+// -- INTERRUPT SUBROUTINE -- //
+#pragma vector = PORT2_VECTOR               // Compiler command to enable interrupt vector for Port 2
+__interrupt void ISR_Port2_S1(void) {       // Interrupt void method. Used in conjunction with previous line
+    if(!(P2IN & BIT3)) {                    // Code to run after interrupt is recognized
+        pattern1();
+    }
+    else if(!(P2IN & BIT4)) {
+        pattern2();
+    }
+    else if(!(P2IN & BIT5)) {
+        pattern3();
+    }
+}
+
+void pattern1() {                           // Blinks one LED repeatedly
+    P1OUT = 15;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+     P1OUT = 15;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+     P1OUT = 15;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+}
+
+void pattern2() {                           // Blinks one LED repeatedly
+    P1OUT = 64;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+     P1OUT = 64;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+     P1OUT = 64;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+}
+
+void pattern3() {                           // Blinks one LED, then adds an adjacent LED and blinks. Continues pattern
+    P1OUT = 1;                              // until 4 LEDs have blinked
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+     P1OUT = 3;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+     P1OUT = 7;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+     P1OUT = 15;
+     __delay_cycles(100000);
+     P1OUT = 0;
+     __delay_cycles(100000);
+}
